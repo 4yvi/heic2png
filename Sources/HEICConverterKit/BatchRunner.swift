@@ -10,12 +10,14 @@ public struct ConversionResult: Identifiable, Equatable {
 
 public enum BatchRunner {
     /// Конвертирует список файлов/папок. Не-HEIC и дубликаты отфильтровываются.
-    public static func run(_ inputs: [URL], outputDir: URL? = nil, overwrite: Bool = false,
+    public static func run(_ inputs: [URL], outputDir: URL? = nil, format: OutputFormat = .png,
+                           quality: Double = Converter.defaultQuality, overwrite: Bool = false,
                            recursive: Bool = true) -> [ConversionResult] {
         FileScanner.scan(inputs, recursive: recursive).map { f in
             do {
-                let out = try Converter.convert(input: f, output: Converter.outputURL(for: f, outputDir: outputDir),
-                                                overwrite: overwrite)
+                let out = try Converter.convert(input: f,
+                                                output: Converter.outputURL(for: f, outputDir: outputDir, format: format),
+                                                format: format, quality: quality, overwrite: overwrite)
                 return ConversionResult(input: f, output: out, error: nil)
             } catch {
                 return ConversionResult(input: f, output: nil, error: "\(error)")

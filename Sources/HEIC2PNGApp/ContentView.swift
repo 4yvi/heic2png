@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import HEICConverterKit
 
 struct ContentView: View {
     @EnvironmentObject var vm: ViewModel
@@ -28,6 +29,16 @@ struct ContentView: View {
                 }
                 group.notify(queue: .main) { vm.convert(urls) }
                 return true
+            }
+
+            HStack {
+                Picker("Формат", selection: $vm.formatRaw) {
+                    ForEach(OutputFormat.allCases) { Text($0.title).tag($0.rawValue) }
+                }
+                Picker("Качество", selection: $vm.qualityPercent) {
+                    ForEach(Array(stride(from: 100, through: 10, by: -10)), id: \.self) { Text("\($0) %").tag($0) }
+                }
+                .disabled(!vm.format.supportsQuality)
             }
 
             Toggle("Перезаписывать существующие", isOn: $vm.overwrite).font(.caption)

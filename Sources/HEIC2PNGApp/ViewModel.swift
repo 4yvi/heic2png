@@ -1,19 +1,25 @@
 import Foundation
 import AppKit
+import SwiftUI
+import UniformTypeIdentifiers
 import HEICConverterKit
 
 @MainActor
 final class ViewModel: ObservableObject {
     static let shared = ViewModel()
     @Published var results: [ConversionResult] = []
-    @Published var overwrite = false
     @Published var busy = false
+    @AppStorage("overwrite") var overwrite = false
+    @AppStorage("format") var formatRaw = OutputFormat.png.rawValue
+    @AppStorage("quality") var qualityPercent = 90
+
+    var format: OutputFormat { OutputFormat(rawValue: formatRaw) ?? .png }
 
     func convert(_ urls: [URL]) {
-        let overwrite = self.overwrite
+        let (overwrite, format, quality) = (self.overwrite, self.format, Double(qualityPercent) / 100)
         busy = true
         Task.detached {
-            let r = BatchRunner.run(urls, overwrite: overwrite)
+            let r = BatchRunner.run(urls, format: format, quality: quality, overwrite: overwrite)
             await MainActor.run {
                 self.results = r + self.results
                 self.busy = false
@@ -25,12 +31,7 @@ final class ViewModel: ObservableObject {
         let p = NSOpenPanel()
         p.allowsMultipleSelection = true
         p.canChooseDirectories = true
-        p.allowedContentTypes = [.heic, .heif].compactMap { $0 }
+        p.allowedContentTypes = [UTType.heic, UTType("public.heif")].compactMap { $0 }
         if p.runModal() == .OK { convert(p.urls) }
     }
-}
-
-import UniformTypeIdentifiers
-private extension UTType {
-    static let heif = UTType("public.heif")
 }

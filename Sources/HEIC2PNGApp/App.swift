@@ -19,7 +19,7 @@ struct HEICApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView().environmentObject(ViewModel.shared)
-                .frame(width: 360, height: 320)
+                .frame(width: 360, height: 350)
         }
         .windowResizability(.contentSize)
     }
